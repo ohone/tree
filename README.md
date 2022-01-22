@@ -3,7 +3,7 @@
 ## Build
 
 ### requirements
-- forge
+- forge https://github.com/gakonst/foundry/tree/master/forge
 - npm
 
 ### how to
