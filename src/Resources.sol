@@ -1,4 +1,4 @@
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 contract Resources is ERC1155{
     constructor()
