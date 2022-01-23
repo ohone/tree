@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.11;
 
-import "openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "solmate/tokens/ERC721.sol";
 import "./Resources.sol";
 import {Hevm} from "hevm/Hevm.sol";
 
@@ -22,11 +22,15 @@ contract Tree is ERC721 {
     }
 
     function ChopDown(uint256 id) external {
-        require(ownerOf(id) == msg.sender);
+        require(ownerOf[id] == msg.sender);
         _burn(id);
         Resources(_resourceContract).mintWood(
             msg.sender,
             block.number - treeCreatedBlock[id]
         );
+    }
+
+    function tokenURI(uint256 id) public view override returns (string memory){
+        return "eoghan.dev";
     }
 }
