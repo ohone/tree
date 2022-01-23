@@ -11,6 +11,7 @@ contract TreeTest is DSTest, Hevm {
     function setUp() public {
         resources = new Resources();
         tree = new Tree(address(resources));
+        resources.addApprovedAddress(address(tree));
     }
     
     // mint single
