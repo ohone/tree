@@ -39,45 +39,69 @@ contract TreeTest is DSTest, Hevm {
         tree.ClaimSapling((address(2)));
     }
 
-    // burn removes tree ownership
-    function testCanChopDownTree() public {
-        tree.ClaimSapling(address(1));
-        require(tree.ownerOf(10_000) == address(1));
-        hevm.prank(address(1));
-        tree.ChopDown(10_000);
-    }
-
-    // chopped down tree doesnt belong to former owner
-    function testChopDownRevokesOwnership() public {
-        tree.ClaimSapling(address(1));
-        require(tree.ownerOf(10_000) == address(1));
-        hevm.prank(address(1));
-        tree.ChopDown(10_000);
-        hevm.expectRevert("ERC721: owner query for nonexistent token");
-        tree.ownerOf(10_000);
-    }
-
     // chopped down tree belongs to nobody
-    function testChopDownBurns() public {
-        tree.ClaimSapling(address(1));
-        require(tree.ownerOf(10_000) == address(1));
-        hevm.prank(address(1));
-        tree.ChopDown(10_000);
-        hevm.expectRevert("ERC721: owner query for nonexistent token");
-        tree.ownerOf(10_000);
+    function testClaimAllBurns(uint16 blockDiff) public {
+        address interactor = address(1);
+        hevm.startPrank(interactor);
+
+        tree.ClaimSapling(interactor);
+        require(tree.ownerOf(10_000) == interactor);
+        hevm.roll(blockDiff);
+
+        tree.ClaimTimber(10_000, tree.CurrentCount(10_000));
+
+        require(tree.ownerOf(10_000) == address(0));
     }
 
     // chopped down tree transfers correct wood to chopper
-    function testChopDownTransfersWood(uint256 blockDiff) public {
-        tree.ClaimSapling(address(1));
+    function testClaimAllTransfersAmount(uint16 blockDiff) public {
+        address interactor = address(1);
+        hevm.startPrank(address(1));
+
+        tree.ClaimSapling(interactor);
         require(tree.ownerOf(10_000) == address(1));
-        hevm.prank(address(1));
 
-        // age the tree
         hevm.roll(blockDiff);
-        tree.ChopDown(10_000);
 
-        // assert that chopped down tree produced (AGE) wood.
-        require(resources.balanceOf(address(1), 0) == blockDiff);
+        uint256 currentCount = tree.CurrentCount(10_000);
+        tree.ClaimTimber(10_000, currentCount);
+
+        require(resources.balanceOf(address(1), 0) == currentCount);
+    }
+
+    // TODO: assert reduction amount correct (_ProportionalToClaim)
+    function testClaimPartialReducesGrowthRate(uint16 blockDiff) public {
+        address interactor = address(1);
+        hevm.startPrank(address(1));
+
+        tree.ClaimSapling(interactor);
+        require(tree.ownerOf(10_000) == address(1));
+
+        hevm.roll(blockDiff);
+
+        uint256 currentCount = tree.CurrentCount(10_000);
+        uint256 claimAmount = currentCount / 2;
+        tree.ClaimTimber(10_000, claimAmount);
+
+        (, , uint256 rate) = tree.trees(10_000);
+        require(rate < 100);
+    }
+
+    // TODO: assert reduction amount correct (_ProportionalToClaim)
+    function testClaimPartialReducesTreeSize(uint16 blockDiff) public {
+        address interactor = address(1);
+        hevm.startPrank(address(1));
+
+        tree.ClaimSapling(interactor);
+        require(tree.ownerOf(10_000) == address(1));
+
+        hevm.roll(blockDiff);
+
+        uint256 pre_claim_amount = tree.CurrentCount(10_000);
+        uint256 currentCount = tree.CurrentCount(10_000);
+        uint256 claimAmount = currentCount / 2;
+        tree.ClaimTimber(10_000, claimAmount);
+
+        require(tree.CurrentCount(10_000) < pre_claim_amount);
     }
 }
