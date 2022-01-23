@@ -1,15 +1,14 @@
 import "openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
-contract Resources is ERC1155{
+contract Resources is ERC1155 {
     address private owner;
-    mapping (address=>bool) authorizedAddresses;
-    
-    constructor() ERC1155("")
-    {
+    mapping(address => bool) authorizedAddresses;
+
+    constructor() ERC1155("") {
         authorizedAddresses[msg.sender] = true;
     }
 
-    function isAuthorized(address addr) external view returns(bool) {
+    function isAuthorized(address addr) external view returns (bool) {
         return authorizedAddresses[addr];
     }
 
@@ -21,8 +20,11 @@ contract Resources is ERC1155{
         _mint(to, 0, amount, "");
     }
 
-    modifier onlyAuth(){
-        require(authorizedAddresses[msg.sender] == true, "Sender not authorized.");
+    modifier onlyAuth() {
+        require(
+            authorizedAddresses[msg.sender] == true,
+            "Sender not authorized."
+        );
         _;
     }
 }
